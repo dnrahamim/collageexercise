@@ -15,17 +15,26 @@ Line.prototype.draw = function(ctx) {
   ctx.stroke();
 };
 
-Line.prototype.drawEnds = function(ctx) {
+Line.prototype.drawEnd = function(ctx, x, y) {
   ctx.strokeStyle = '#000';
   ctx.lineWidth = 1;
-  var drawEnd = function(x, y) {
-    ctx.beginPath();
-    ctx.ellipse(x, y, 5, 5, 0, 0, 2 * Math.PI);
-    ctx.stroke();
-  };
-  drawEnd(this.x1, this.y1);
-  drawEnd(this.x2, this.y2);
+  ctx.beginPath();
+  ctx.ellipse(x, y, 5, 5, 0, 0, 2 * Math.PI);
+  ctx.stroke();
+}
+
+Line.prototype.drawEnds = function(ctx) {
+  this.drawFirstEnd(ctx);
+  this.drawLastEnd(ctx);
 };
+
+Line.prototype.drawFirstEnd = function(ctx) {
+  this.drawEnd(ctx, this.x1, this.y1);
+}
+
+Line.prototype.drawLastEnd = function(ctx) {
+  this.drawEnd(ctx, this.x2, this.y2);
+}
 
 Line.prototype.move = function(dx, dy) {
   this.x1 += dx;

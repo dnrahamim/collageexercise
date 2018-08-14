@@ -7,11 +7,24 @@ Penciling.prototype.pushLine = function(line) {
 }
 
 Penciling.prototype.drawEnds = function(ctx) {
-    console.log('bagel');
+    this.lines[0].drawFirstEnd(ctx);
+    this.lines[this.lines.length-1].drawLastEnd(ctx);
 };
 
 Penciling.prototype.draw = function(ctx) {
     this.lines.forEach(function(line) {
         line.draw(ctx);
     });
+};
+
+Penciling.prototype.squareDistanceFrom = function(x, y) {
+    var closestDistance = -1;
+    this.lines.forEach(function(line, index) {
+        var squareDistance = line.squareDistanceFrom(x, y);
+        if(squareDistance <= closestDistance || closestDistance < 0) {
+          closestDistance = squareDistance;
+          closestLine = line;
+        }
+    });
+    return closestDistance;
 };
