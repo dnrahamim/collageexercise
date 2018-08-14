@@ -3,6 +3,7 @@ var app = {
   selectedIndex: -1,
   mode: 'line',
   lines: [],
+  pencilings: [],
   pos: null,
   
   init: function() {
@@ -34,12 +35,19 @@ var app = {
       self.pos = null;
       self.render();
     });
+    document.getElementById('btn-pencil').addEventListener('click', function() {
+      self.mode = 'pencil';
+      self.pos = null;
+      console.log('bagel');
+      self.updateToolbarState();
+    });
   },
   
   updateToolbarState: function() {
     var self = this;
     document.getElementById('btn-line').className = self.mode === 'line' ? 'active' : '';
     document.getElementById('btn-select').className = self.mode === 'select' ? 'active' : '';
+    document.getElementById('btn-pencil').className = self.mode === 'pencil' ? 'active' : '';
   },
 
   selectLine(index) {
@@ -87,6 +95,37 @@ var app = {
       }
       self.render();
     });
+    canvas.addEventListener('mousedown', function(e) {
+      if(self.mode === 'pencil') {
+        x = e.offsetX, y = e.offsetY;
+        self.pos = [ x, y ];
+        self.pencilings.push([]);
+      }
+    });
+    canvas.addEventListener('mousemove', function(e) {
+      if(self.mode === 'pencil' && self.pos !== null) {
+        x = e.offsetX, y = e.offsetY;
+        // create the line and add to the list
+        var x0 = self.pos[0], y0 = self.pos[1];
+        var length = Math.sqrt((x - x0) * (x - x0) + (y - y0) * (y - y0));
+        var line = new Line(x0, y0, x, y, length);
+        self.pencilings[self.pencilings.length-1].push(line);
+        self.pos = [ x, y ];
+        self.render();
+      }
+    });
+    canvas.addEventListener('mouseup', function(e) {
+      if(self.mode === 'pencil' && self.pos !== null) {
+        x = e.offsetX, y = e.offsetY;
+        // create the line and add to the list
+        var x0 = self.pos[0], y0 = self.pos[1];
+        var length = Math.sqrt((x - x0) * (x - x0) + (y - y0) * (y - y0));
+        var line = new Line(x0, y0, x, y, length);
+        self.pencilings[self.pencilings.length-1].push(line);
+        self.pos = null;
+        self.render();
+      }
+    });
   },
   
   render: function() {
@@ -97,6 +136,12 @@ var app = {
     self.lines.forEach(function(line) {
       line.draw(ctx);
     });
+    self.pencilings.forEach(function(penciling) {
+      penciling.forEach(function(line) {
+        line.draw(ctx);
+      });
+    });
+      
     if(self.selectedIndex >= 0) {
       self.lines[self.selectedIndex].drawEnds(ctx);
     }
