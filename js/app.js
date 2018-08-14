@@ -1,6 +1,6 @@
 var app = {
   initDone: false,
-  selectedIndex: -1,
+  selectedThing: null,
   mode: 'line',
   lines: [],
   pencilings: [],
@@ -28,8 +28,10 @@ var app = {
       self.updateToolbarState();
     });
     document.getElementById('btn-erase').addEventListener('click', function() {
-      if(self.selectedIndex >= 0) {
-        self.lines.splice(self.selectedIndex, 1);
+      if(self.selectedThing !== null) {
+        if(self.selectedThing.type === 'line') {
+          self.lines.splice(self.selectedThing.index, 1);
+        }
       }
       self.deselectLine();
       self.pos = null;
@@ -38,7 +40,6 @@ var app = {
     document.getElementById('btn-pencil').addEventListener('click', function() {
       self.mode = 'pencil';
       self.pos = null;
-      console.log('bagel');
       self.updateToolbarState();
     });
   },
@@ -50,12 +51,12 @@ var app = {
     document.getElementById('btn-pencil').className = self.mode === 'pencil' ? 'active' : '';
   },
 
-  selectLine(index) {
-    this.selectedIndex = index;
+  selectThing(thing) {
+    this.selectedThing = thing;
   },
 
-  deselectLine() {
-    this.selectedIndex = -1;
+  deselectThing() {
+    this.selectedThing = null;
   },
   
   bindDrawAreaEvents: function() {
@@ -72,24 +73,35 @@ var app = {
           var x0 = self.pos[0], y0 = self.pos[1];
           var length = Math.sqrt((x - x0) * (x - x0) + (y - y0) * (y - y0));
           var line = new Line(x0, y0, x, y, length);
+          line.index = self.lines.length; //use this index later
           self.lines.push(line);
           self.pos = null;
         }
       } else if(self.mode === 'select') {
-        if (self.lines.length > 0) {
+        var closestThing = 'line';
+        if (self.lines.length > 0 || self.pencilings.length > 0) {
           var closestDistance = 10;
           var closestIndex = -1;
           self.lines.forEach(function(line, index) {
             var squareDistance = line.squareDistanceFrom(x, y);
             if(squareDistance <= closestDistance) {
               closestDistance = squareDistance;
-              closestIndex = index;
+              closestThing = line;
             }
           });
-          if(closestIndex >= 0) {
-            self.selectLine(closestIndex);
+          self.pencilings.forEach(function(penciling, index) {
+            penciling.forEach(function(line, index) {
+              var squareDistance = line.squareDistanceFrom(x, y);
+              if(squareDistance <= closestDistance) {
+                closestDistance = squareDistance;
+                closestThing = penciling;
+              }
+            });
+          });
+          if(closestThing !== null) {
+            self.selectThing(closestThing);
           } else {
-            self.deselectLine();
+            self.deselectThing();
           }
         }
       }
@@ -141,9 +153,10 @@ var app = {
         line.draw(ctx);
       });
     });
-      
-    if(self.selectedIndex >= 0) {
-      self.lines[self.selectedIndex].drawEnds(ctx);
+    
+    if(self.selectedThing !== null) {
+      debugger;
+      self.selectedThing.drawEnds(ctx);
     }
   },
 };
