@@ -78,7 +78,7 @@ var app = {
           self.pos = null;
         }
       } else if(self.mode === 'select') {
-        var closestThing = 'line';
+        var closestThing = null;
         if (self.lines.length > 0 || self.pencilings.length > 0) {
           var closestDistance = 10;
           var closestIndex = -1;
@@ -90,7 +90,7 @@ var app = {
             }
           });
           self.pencilings.forEach(function(penciling, index) {
-            penciling.forEach(function(line, index) {
+            penciling.lines.forEach(function(line, index) {
               var squareDistance = line.squareDistanceFrom(x, y);
               if(squareDistance <= closestDistance) {
                 closestDistance = squareDistance;
@@ -111,7 +111,7 @@ var app = {
       if(self.mode === 'pencil') {
         x = e.offsetX, y = e.offsetY;
         self.pos = [ x, y ];
-        self.pencilings.push([]);
+        self.pencilings.push(new Penciling());
       }
     });
     canvas.addEventListener('mousemove', function(e) {
@@ -121,7 +121,8 @@ var app = {
         var x0 = self.pos[0], y0 = self.pos[1];
         var length = Math.sqrt((x - x0) * (x - x0) + (y - y0) * (y - y0));
         var line = new Line(x0, y0, x, y, length);
-        self.pencilings[self.pencilings.length-1].push(line);
+        var mostRecentPenciling =  self.pencilings[self.pencilings.length-1];
+        mostRecentPenciling.pushLine(line);
         self.pos = [ x, y ];
         self.render();
       }
@@ -133,7 +134,8 @@ var app = {
         var x0 = self.pos[0], y0 = self.pos[1];
         var length = Math.sqrt((x - x0) * (x - x0) + (y - y0) * (y - y0));
         var line = new Line(x0, y0, x, y, length);
-        self.pencilings[self.pencilings.length-1].push(line);
+        var mostRecentPenciling =  self.pencilings[self.pencilings.length-1];
+        mostRecentPenciling.pushLine(line);
         self.pos = null;
         self.render();
       }
@@ -149,9 +151,7 @@ var app = {
       line.draw(ctx);
     });
     self.pencilings.forEach(function(penciling) {
-      penciling.forEach(function(line) {
-        line.draw(ctx);
-      });
+      penciling.draw(ctx);
     });
     
     if(self.selectedThing !== null) {
