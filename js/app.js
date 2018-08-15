@@ -126,6 +126,7 @@ var app = {
           });
           if(closestThing !== null) {
             self.selectThing(closestThing);
+            self.render();
           }
         }
       }
@@ -145,7 +146,9 @@ var app = {
         x = e.offsetX, y = e.offsetY;
         var deltaX = x - self.pos[0];
         var deltaY = y - self.pos[1];
+        self.pos = [ x, y ];
         self.selectedThing.move(deltaX, deltaY);
+        self.render();
       }
     });
     canvas.addEventListener('mouseup', function(e) {
