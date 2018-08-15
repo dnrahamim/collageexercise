@@ -146,8 +146,14 @@ var app = {
         x = e.offsetX, y = e.offsetY;
         var deltaX = x - self.pos[0];
         var deltaY = y - self.pos[1];
-        self.pos = [ x, y ];
+        
+        //check if we can actually move
+        let adjustedDeltas = self.selectedThing.canMove(canvas, deltaX, deltaY);
+        deltaX = adjustedDeltas[0];
+        deltaY = adjustedDeltas[1];
+
         self.selectedThing.move(deltaX, deltaY);
+        self.pos = [ x, y ];
         self.render();
       }
     });

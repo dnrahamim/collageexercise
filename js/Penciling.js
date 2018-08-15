@@ -17,6 +17,21 @@ Penciling.prototype.draw = function(ctx) {
     });
 };
 
+Penciling.prototype.canMove = function(canvas, dx, dy) {
+    let okdx = dx;
+    let okdy = dy;
+    this.lines.forEach(function(line) {
+        let adjustedDeltas = line.canMove(canvas, dx, dy);
+        if(adjustedDeltas[0] === 0) {
+            okdx = 0;
+        }
+        if(adjustedDeltas[1] === 0) {
+            okdy = 0;
+        }
+    });
+    return [okdx, okdy];
+}
+
 Penciling.prototype.move = function(dx, dy) {
     this.lines.forEach(function(line) {
         line.move(dx, dy);

@@ -36,6 +36,24 @@ Line.prototype.drawLastEnd = function(ctx) {
   this.drawEnd(ctx, this.x2, this.y2);
 }
 
+Line.prototype.canMove = function(canvas, dx, dy) {
+  let dxok = 0;
+  let dyok = 0;
+  let newy1 = this.y1 + dy;
+  let newy2 = this.y2 + dy;
+  let newx1 = this.x1 + dx;
+  let newx2 = this.x2 + dx;
+  if(newy1 < canvas.height && newy1 > 0 &&
+    newy2 < canvas.height && newy2 > 0) {
+    dyok = dy;
+  }
+  if(newx1 < canvas.width && newx1 > 0 &&
+    newx2 < canvas.width && newx2 > 0) {
+    dxok = dx;
+  }
+  return [dxok, dyok];
+}
+
 Line.prototype.move = function(dx, dy) {
   this.x1 += dx;
   this.y1 += dy;
