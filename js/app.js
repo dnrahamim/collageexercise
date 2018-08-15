@@ -50,6 +50,7 @@ var app = {
     document.getElementById('btn-line').className = self.mode === 'line' ? 'active' : '';
     document.getElementById('btn-select').className = self.mode === 'select' ? 'active' : '';
     document.getElementById('btn-pencil').className = self.mode === 'pencil' ? 'active' : '';
+    self.deselectThing();
   },
 
   selectThing(thing) {
@@ -58,6 +59,7 @@ var app = {
 
   deselectThing() {
     this.selectedThing = null;
+    this.render();
   },
   
   bindDrawAreaEvents: function() {
@@ -138,12 +140,11 @@ var app = {
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    self.selectables.forEach(function(line) {
-      line.draw(ctx);
+    self.selectables.forEach(function(selectable) {
+      selectable.draw(ctx);
     });
     
     if(self.selectedThing !== null) {
-      debugger;
       self.selectedThing.drawEnds(ctx);
     }
   },
