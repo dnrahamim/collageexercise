@@ -17,6 +17,12 @@ Penciling.prototype.draw = function(ctx) {
     });
 };
 
+Penciling.prototype.move = function(dx, dy) {
+    this.lines.forEach(function(line) {
+        line.move(dx, dy);
+    });
+}
+
 Penciling.prototype.squareDistanceFrom = function(x, y) {
     var closestDistance = -1;
     this.lines.forEach(function(line, index) {

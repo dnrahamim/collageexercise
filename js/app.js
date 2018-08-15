@@ -2,7 +2,7 @@ var app = {
   initDone: false,
   selectedThing: null,
   mode: 'line',
-  selectables: [],
+  drawables: [],
   pos: null,
   
   init: function() {
@@ -28,9 +28,9 @@ var app = {
     });
     document.getElementById('btn-erase').addEventListener('click', function() {
       if(self.selectedThing !== null) {
-        self.selectables.forEach(function(selectable, index) {
-          if(self.selectedThing === selectable) {
-            self.selectables.splice(index, 1);
+        self.drawables.forEach(function(drawable, index) {
+          if(self.selectedThing === drawable) {
+            self.drawables.splice(index, 1);
           }
         });
       }
@@ -43,6 +43,11 @@ var app = {
       self.pos = null;
       self.updateToolbarState();
     });
+    document.getElementById('btn-move').addEventListener('click', function() {
+      self.mode = 'move';
+      self.pos = null;
+      self.updateToolbarState();
+    });
   },
   
   updateToolbarState: function() {
@@ -50,6 +55,7 @@ var app = {
     document.getElementById('btn-line').className = self.mode === 'line' ? 'active' : '';
     document.getElementById('btn-select').className = self.mode === 'select' ? 'active' : '';
     document.getElementById('btn-pencil').className = self.mode === 'pencil' ? 'active' : '';
+    document.getElementById('btn-move').className = self.mode === 'move' ? 'active' : '';
     self.deselectThing();
   },
 
@@ -76,25 +82,25 @@ var app = {
           var x0 = self.pos[0], y0 = self.pos[1];
           var length = Math.sqrt((x - x0) * (x - x0) + (y - y0) * (y - y0));
           var line = new Line(x0, y0, x, y, length);
-          self.selectables.push(line);
+          self.drawables.push(line);
           self.pos = null;
         }
       } else if(self.mode === 'select') {
-        var closestThing = null;
-        if (self.selectables.length > 0) {
+        if (self.drawables.length > 0) {
+          var closestThing = null;
           var closestDistance = 10;
-          self.selectables.forEach(function(selectable, index) {
-            var squareDistance = selectable.squareDistanceFrom(x, y);
+          self.drawables.forEach(function(drawable, index) {
+            var squareDistance = drawable.squareDistanceFrom(x, y);
             if(squareDistance <= closestDistance) {
               closestDistance = squareDistance;
-              closestThing = selectable;
+              closestThing = drawable;
             }
           });
           if(closestThing !== null) {
             self.selectThing(closestThing);
           } else {
             self.deselectThing();
-          }
+          } //TODO: is this necessary?
         }
       }
       self.render();
@@ -104,7 +110,24 @@ var app = {
         x = e.offsetX, y = e.offsetY;
         self.pos = [ x, y ];
         var penciling = new Penciling();
-        self.selectables.push(penciling);
+        self.drawables.push(penciling);
+      } else if(self.mode === 'move') {
+        x = e.offsetX, y = e.offsetY;
+        self.pos = [ x, y ];
+        if (self.drawables.length > 0) {
+          var closestThing = null;
+          var closestDistance = 10;
+          self.drawables.forEach(function(drawable, index) {
+            var squareDistance = drawable.squareDistanceFrom(x, y);
+            if(squareDistance <= closestDistance) {
+              closestDistance = squareDistance;
+              closestThing = drawable;
+            }
+          });
+          if(closestThing !== null) {
+            self.selectThing(closestThing);
+          }
+        }
       }
     });
     canvas.addEventListener('mousemove', function(e) {
@@ -114,10 +137,15 @@ var app = {
         var x0 = self.pos[0], y0 = self.pos[1];
         var length = Math.sqrt((x - x0) * (x - x0) + (y - y0) * (y - y0));
         var line = new Line(x0, y0, x, y, length);
-        var mostRecentPenciling =  self.selectables[self.selectables.length-1];
+        var mostRecentPenciling =  self.drawables[self.drawables.length-1];
         mostRecentPenciling.pushLine(line);
         self.pos = [ x, y ];
         self.render();
+      } else if(self.mode === 'move'  && self.pos !== null) {
+        x = e.offsetX, y = e.offsetY;
+        var deltaX = x - self.pos[0];
+        var deltaY = y - self.pos[1];
+        self.selectedThing.move(deltaX, deltaY);
       }
     });
     canvas.addEventListener('mouseup', function(e) {
@@ -127,10 +155,13 @@ var app = {
         var x0 = self.pos[0], y0 = self.pos[1];
         var length = Math.sqrt((x - x0) * (x - x0) + (y - y0) * (y - y0));
         var line = new Line(x0, y0, x, y, length);
-        var mostRecentPenciling =  self.selectables[self.selectables.length-1];
+        var mostRecentPenciling =  self.drawables[self.drawables.length-1];
         mostRecentPenciling.pushLine(line);
         self.pos = null;
         self.render();
+      } else if(self.mode === 'move' && self.pos !== null) {
+        self.pos = null;
+        self.deselectThing();
       }
     });
   },
@@ -140,8 +171,8 @@ var app = {
     var canvas = document.getElementById('canvas');
     var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    self.selectables.forEach(function(selectable) {
-      selectable.draw(ctx);
+    self.drawables.forEach(function(drawable) {
+      drawable.draw(ctx);
     });
     
     if(self.selectedThing !== null) {
